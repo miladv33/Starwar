@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SnapFood</string>
+    <string name="search_screen_title">Star Wars Characters</string>
+    <string name="search_placeholder">Search characters…</string>
 </resources>
