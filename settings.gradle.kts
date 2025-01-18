@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SnapFood"
+rootProject.name = "Star Wars"
 include(":app")
  

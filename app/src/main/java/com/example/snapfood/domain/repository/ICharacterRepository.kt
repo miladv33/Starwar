@@ -1,8 +1,8 @@
 package com.example.snapfood.domain.repository
 
-import com.example.snapfood.domain.model.Character
+import com.example.snapfood.domain.model.SimpleCharacter
 
 interface ICharacterRepository {
-    suspend fun searchCharacters(query: String): List<Character>
-    suspend fun getCharacterDetails(id: String): Character
+    suspend fun searchCharacters(query: String): List<SimpleCharacter>
+    suspend fun getCharacterDetails(id: String): SimpleCharacter
 }

@@ -1,6 +1,8 @@
 package com.example.snapfood.presentation.ui.search
 
 import androidx.lifecycle.ViewModel
+import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.SimpleCharacter
 import com.example.snapfood.domain.usecase.SearchCharactersUseCase
 
 class SearchViewModel(
@@ -11,7 +13,7 @@ class SearchViewModel(
 
 data class SearchScreenState(
     val searchQuery: String = "",
-    val characters: List<CharacterItem> = emptyList(),
+    val characters: List<CharacterUiModel> = emptyList(),
     val isLoading: Boolean = false
 )
 

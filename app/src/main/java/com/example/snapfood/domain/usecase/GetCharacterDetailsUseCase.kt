@@ -1,11 +1,11 @@
 package com.example.snapfood.domain.usecase
 
 import com.example.snapfood.domain.repository.ICharacterRepository
-import com.example.snapfood.domain.model.Character
+import com.example.snapfood.domain.model.SimpleCharacter
 
 class GetCharacterDetailsUseCase(
     private val repository: ICharacterRepository
 ) {
-    suspend operator fun invoke(id: String): Character =
+    suspend operator fun invoke(id: String): SimpleCharacter =
         repository.getCharacterDetails(id)
 }

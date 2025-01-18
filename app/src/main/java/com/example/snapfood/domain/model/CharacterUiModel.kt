@@ -1,5 +1,7 @@
 package com.example.snapfood.domain.model
 
+import com.example.snapfood.data.dto.Character
+
 data class CharacterUiModel(
     val id: String,
     val name: String,
@@ -9,7 +11,7 @@ data class CharacterUiModel(
         fun fromDomain(character: Character) = CharacterUiModel(
             id = character.id,
             name = character.name,
-            description = character.description
+            description = character.name
         )
     }
 }

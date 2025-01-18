@@ -1,15 +1,15 @@
 package com.example.snapfood.data.repository
 
-import com.example.snapfood.domain.model.Character
+import com.example.snapfood.domain.model.SimpleCharacter
 import com.example.snapfood.domain.repository.ICharacterRepository
 
 class CharacterRepository : ICharacterRepository {
     // TODO: Implement repository
-    override suspend fun searchCharacters(query: String): List<Character> {
+    override suspend fun searchCharacters(query: String): List<SimpleCharacter> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getCharacterDetails(id: String): Character {
+    override suspend fun getCharacterDetails(id: String): SimpleCharacter {
         TODO("Not yet implemented")
     }
 }

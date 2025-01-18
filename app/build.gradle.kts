@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.hilt)
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
     kotlin("kapt")
 }
 
@@ -12,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "com.example.snapfood"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -42,7 +43,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -72,4 +73,14 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
+    //    Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+    // retrofit
+    implementation (libs.retrofit)
+    implementation(libs.gson)
+    implementation(libs.stetho)
+    implementation(libs.stetho.okhttp3)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 }
