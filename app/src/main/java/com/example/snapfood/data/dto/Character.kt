@@ -29,7 +29,7 @@ data class Character(
     val gender: String,
 
     @SerializedName("homeworld")
-    val homeworld: String,
+    val homeWorld: String,
 
     @SerializedName("films")
     val films: List<String>,

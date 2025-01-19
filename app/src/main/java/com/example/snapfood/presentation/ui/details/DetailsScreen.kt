@@ -1,6 +1,6 @@
 package com.example.snapfood.presentation.ui.details
 
-import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,8 +22,10 @@ import com.example.snapfood.presentation.ui.common.CommonSpacing
 @Composable
 fun DetailsScreen(
     characterName: String = "Luke Skywalker",
-    onBackClick: () -> Unit = {},
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
+    state: DetailScreenState,
+    onEvent: (DetailScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -32,10 +34,24 @@ fun DetailsScreen(
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         DetailHeader(
-            characterName = characterName,
+            characterName = state.character.characterName,
             onBackClick = onBackClick
         )
-        DetailContent()
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            DetailContent(
+                basicInfo = state.character.basicInfo,
+                speciesInfo = state.character.speciesInfo,
+                films = state.character.films
+            )
+        }
     }
 }
 
@@ -74,6 +90,9 @@ fun DetailHeader(
 
 @Composable
 fun DetailContent(
+    basicInfo: List<InfoItem>,
+    speciesInfo: List<InfoItem>,
+    films: List<Film>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -85,37 +104,21 @@ fun DetailContent(
         item {
             InfoSection(
                 title = "Basic Information",
-                items = listOf(
-                    InfoItem("Birth Year", "19 BBY"),
-                    InfoItem("Height", "172 cm (5 ft 8 in)")
-                )
+                items = basicInfo
             )
         }
 
         item {
             InfoSection(
                 title = "Species Information",
-                items = listOf(
-                    InfoItem("Species", "Human"),
-                    InfoItem("Language", "Galactic Basic"),
-                    InfoItem("Homeworld", "Tatooine (Population: 200,000)")
-                )
+                items = speciesInfo
             )
         }
 
         item {
             FilmsSection(
                 title = "Films",
-                films = listOf(
-                    Film(
-                        "Episode IV: A New Hope",
-                        "It is a period of civil war. Rebel spaceships, striking from a hidden base..."
-                    ),
-                    Film(
-                        "Episode V: The Empire Strikes Back",
-                        "It is a dark time for the Rebellion. Although the Death Star has been destroyed..."
-                    )
-                )
+                films = films
             )
         }
     }
@@ -169,7 +172,6 @@ fun InfoItemCard(
         }
     }
 }
-
 
 @Composable
 fun FilmsSection(
@@ -226,16 +228,6 @@ fun FilmCard(
     }
 }
 
-data class InfoItem(
-    val label: String,
-    val value: String
-)
-
-data class Film(
-    val title: String,
-    val crawl: String
-)
-
 @Preview(showBackground = true)
 @Composable
 fun DetailHeaderPreview() {
@@ -274,7 +266,29 @@ fun FilmCardPreview() {
 @Composable
 fun DetailsScreenPreview() {
     SnapFoodTheme {
-        DetailsScreen()
+        DetailsScreen(
+            state = DetailScreenState(
+                character = Detail(
+                    characterName = "Luke Skywalker",
+                    basicInfo = listOf(
+                        InfoItem("Birth Year", "19 BBY"),
+                        InfoItem("Height", "172 cm")
+                    ),
+                    speciesInfo = listOf(
+                        InfoItem("Species", "Human"),
+                        InfoItem("Language", "Basic")
+                    ),
+                    films = listOf(
+                        Film(
+                            "Episode IV: A New Hope",
+                            "It is a period of civil war..."
+                        )
+                    )
+                ),
+            ),
+            onEvent = {},
+            onBackClick = {}
+        )
     }
 }
 
@@ -282,6 +296,28 @@ fun DetailsScreenPreview() {
 @Composable
 fun DetailsScreenDarkPreview() {
     SnapFoodTheme(darkTheme = true) {
-        DetailsScreen()
+        DetailsScreen(
+            state = DetailScreenState(
+                character = Detail(
+                    characterName = "Luke Skywalker",
+                    basicInfo = listOf(
+                        InfoItem("Birth Year", "19 BBY"),
+                        InfoItem("Height", "172 cm")
+                    ),
+                    speciesInfo = listOf(
+                        InfoItem("Species", "Human"),
+                        InfoItem("Language", "Basic")
+                    ),
+                    films = listOf(
+                        Film(
+                            "Episode IV: A New Hope",
+                            "It is a period of civil war..."
+                        )
+                    )
+                ),
+            ),
+            onEvent = {},
+            onBackClick = {}
+        )
     }
 }

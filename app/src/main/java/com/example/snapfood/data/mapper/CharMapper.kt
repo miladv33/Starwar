@@ -1,16 +1,19 @@
 package com.example.snapfood.data.mapper
 
 import com.example.snapfood.data.dto.Character
-import com.example.snapfood.domain.model.SimpleCharacter
+import com.example.snapfood.domain.model.CharacterUiModel
 import javax.inject.Inject
 
 class CharMapper @Inject constructor() {
-    fun mapIntoCharacter(character: Character): SimpleCharacter {
+    fun mapIntoCharacter(character: Character): CharacterUiModel {
         val id = character.url.trim('/').split("/").last()
 
-        return SimpleCharacter(
+        return CharacterUiModel(
             id = id,
-            name = character.name,
+            characterName = character.name,
+            birthYear = character.birthYear,
+            height = character.height,
+            homeWorld = character.homeWorld,
             description = buildDescription(character)
         )
     }

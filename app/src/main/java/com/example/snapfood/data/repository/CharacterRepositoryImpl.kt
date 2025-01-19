@@ -2,10 +2,9 @@ package com.example.snapfood.data.repository
 
 import com.example.snapfood.core.di.qualifier.Concrete
 import com.example.snapfood.data.api.StarWarsApi
-import com.example.snapfood.data.dto.Character
 import com.example.snapfood.data.mapper.CharMapper
+import com.example.snapfood.domain.model.CharacterUiModel
 import com.example.snapfood.domain.model.Resources
-import com.example.snapfood.domain.model.SimpleCharacter
 import com.example.snapfood.domain.repository.CharacterRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +17,7 @@ class CharacterRepositoryImpl @Inject constructor(
     private val mapper: CharMapper
 ) :
     CharacterRepository {
-    override suspend fun searchCharacters(query: String): Flow<Resources<List<SimpleCharacter>>> {
+    override suspend fun searchCharacters(query: String): Flow<Resources<List<CharacterUiModel>>> {
         return flow {
             emit(Resources.Loading(true))
 
@@ -43,7 +42,7 @@ class CharacterRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCharacterDetails(characterId: String): Flow<Resources<SimpleCharacter>> {
+    override suspend fun getCharacterDetails(characterId: String): Flow<Resources<CharacterUiModel>> {
         return flow {
             emit(Resources.Loading(true))
 

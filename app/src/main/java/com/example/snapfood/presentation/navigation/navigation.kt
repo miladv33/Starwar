@@ -1,6 +1,5 @@
 package com.example.snapfood.presentation.navigation
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavGraphBuilder
@@ -9,9 +8,8 @@ import androidx.navigation.compose.composable
 import com.example.snapfood.presentation.ui.details.DetailsScreen
 
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.snapfood.presentation.ui.details.DetailsViewModel
 import com.example.snapfood.presentation.ui.search.SearchScreen
-import com.example.snapfood.presentation.ui.search.SearchScreenEvent
-import com.example.snapfood.presentation.ui.search.SearchScreenNavigation
 import com.example.snapfood.presentation.ui.search.SearchViewModel
 
 sealed class Screen(val route: String) {
@@ -38,8 +36,12 @@ fun NavGraphBuilder.starWarsNavGraph(navController: NavHostController) {
         route = Screen.Details.route,
     ) { backStackEntry ->
         val characterId = backStackEntry.arguments?.getString("characterId") ?: ""
+        val viewModel: DetailsViewModel = hiltViewModel()
+        val state by viewModel.state.collectAsState()
         DetailsScreen(
+            state = state,
             characterName = characterId,
+            onEvent = viewModel::onEvent,
             onBackClick = {
                 navController.popBackStack()
             }

@@ -194,7 +194,7 @@ fun CharacterCard(
             .clickable(onClick = onClick)
     ) {
         CharacterCardContent(
-            name = character.name,
+            characterName = character.characterName,
             description = character.description,
             modifier = Modifier.padding(CharacterCardDefaults.ContentPadding)
         )
@@ -203,13 +203,13 @@ fun CharacterCard(
 
 @Composable
 private fun CharacterCardContent(
-    name: String,
+    characterName: String,
     description: String,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         Text(
-            text = name,
+            text = characterName,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -232,7 +232,7 @@ private fun CharacterCardPreview() {
         CharacterCard(
             character = CharacterUiModel(
                 id = "1",
-                name = "Luke Skywalker",
+                characterName = "Luke Skywalker",
                 description = "Human from Tatooine"
             ),
             onClick = {}
@@ -248,7 +248,7 @@ private fun CharacterCardDarkPreview() {
         CharacterCard(
             character = CharacterUiModel(
                 id = "1",
-                name = "Luke Skywalker",
+                characterName = "Luke Skywalker",
                 description = "Human from Tatooine"
             ),
             onClick = {}
@@ -265,17 +265,17 @@ fun SearchScreenPreview() {
                 characters = listOf(
                     CharacterUiModel(
                         id = "1",
-                        name = "Luke Skywalker",
+                        characterName = "Luke Skywalker",
                         description = "Human from Tatooine"
                     ),
                     CharacterUiModel(
                         id = "2",
-                        name = "Leia Organa",
+                        characterName = "Leia Organa",
                         description = "Human from Alderaan"
                     ),
                     CharacterUiModel(
                         id = "3",
-                        name = "Han Solo",
+                        characterName = "Han Solo",
                         description = "Human from Corellia"
                     )
                 )
@@ -296,17 +296,17 @@ fun SearchScreenDarkPreview() {
                 characters = listOf(
                     CharacterUiModel(
                         id = "1",
-                        name = "Luke Skywalker",
+                        characterName = "Luke Skywalker",
                         description = "Human from Tatooine"
                     ),
                     CharacterUiModel(
                         id = "2",
-                        name = "Leia Organa",
+                        characterName = "Leia Organa",
                         description = "Human from Alderaan"
                     ),
                     CharacterUiModel(
                         id = "3",
-                        name = "Han Solo",
+                        characterName = "Han Solo",
                         description = "Human from Corellia"
                     )
                 )

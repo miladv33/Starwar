@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snapfood.domain.model.CharacterUiModel
 import com.example.snapfood.domain.model.Resources
-import com.example.snapfood.domain.model.SimpleCharacter
 import com.example.snapfood.domain.usecase.SearchCharactersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -79,15 +78,15 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun handleSearchResult(result: Resources<List<SimpleCharacter>>) {
+    private fun handleSearchResult(result: Resources<List<CharacterUiModel>>) {
         when (result) {
             is Resources.Success -> updateCharactersList(result.data)
-            is Resources.Error -> handleSearchError(result.message)
+            is Resources.Error -> handleSearchError()
             is Resources.Loading -> setLoading(result.isLoading)
         }
     }
 
-    private fun updateCharactersList(characters: List<SimpleCharacter>?) {
+    private fun updateCharactersList(characters: List<CharacterUiModel>?) {
         _state.update { currentState ->
             currentState.copy(
                 characters = characters?.map { it.toUiModel() } ?: emptyList(),
@@ -96,7 +95,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun handleSearchError(message: String?) {
+    private fun handleSearchError() {
         _state.update {
             it.copy(
                 isLoading = false,
@@ -107,8 +106,8 @@ class SearchViewModel @Inject constructor(
 }
 
 // Extension function to map domain model to UI model
-private fun SimpleCharacter.toUiModel() = CharacterUiModel(
+private fun CharacterUiModel.toUiModel() = CharacterUiModel(
     id = id,
-    name = name,
+    characterName = characterName,
     description = description
 )
