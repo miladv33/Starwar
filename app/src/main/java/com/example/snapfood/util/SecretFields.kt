@@ -1,6 +1,8 @@
 package com.example.snapfood.util
 
-class SecretFields {
+import javax.inject.Inject
+
+class SecretFields @Inject constructor() {
     private val debugBaseUrl = "https://swapi.dev/api/"
     private val releaseBaseUrl = "https://swapi.dev/api/"
 

@@ -1,5 +1,6 @@
 package com.example.snapfood.presentation.ui.search
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 
 import androidx.compose.foundation.background
@@ -25,8 +26,8 @@ import com.example.snapfood.presentation.ui.common.CommonSpacing
 @Composable
 fun SearchScreen(
     state: SearchScreenState,
-    onEvent: (SearchScreenEvent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEvent: (SearchScreenEvent) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -39,6 +40,7 @@ fun SearchScreen(
             query = state.searchQuery,
             onQueryChange = { onEvent(SearchScreenEvent.OnSearchQueryChange(it)) }
         )
+        Log.i("SearchScreenTAG", "SearchScreen: ${state.characters}")
         CharactersList(
             characters = state.characters,
             onCharacterClick = { onEvent(SearchScreenEvent.OnCharacterClick(it)) }
