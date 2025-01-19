@@ -25,14 +25,11 @@ class SearchViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(SearchScreenState())
     val state = _state.asStateFlow()
-    private val _navigation = Channel<SearchScreenNavigation>()
-    val navigation = _navigation.receiveAsFlow()
     private var searchJob: Job? = null
 
     fun onEvent(event: SearchScreenEvent) {
         when (event) {
             is SearchScreenEvent.OnSearchQueryChange -> updateSearchQuery(event.query)
-            is SearchScreenEvent.OnCharacterClick -> navigateToDetails(event.characterId)
         }
     }
 
@@ -40,12 +37,6 @@ class SearchViewModel @Inject constructor(
         _state.update { it.copy(searchQuery = query) }
         searchJob?.cancel()
         searchJob = viewModelScope.launch { searchCharacters() }
-    }
-
-    private fun navigateToDetails(characterId: String) {
-        viewModelScope.launch {
-            _navigation.send(SearchScreenNavigation.NavigateToDetails(characterId))
-        }
     }
 
     private suspend fun searchCharacters() {

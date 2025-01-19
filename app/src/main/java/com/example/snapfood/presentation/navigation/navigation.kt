@@ -25,23 +25,11 @@ fun NavGraphBuilder.starWarsNavGraph(navController: NavHostController) {
     composable(route = Screen.Search.route) {
         val viewModel: SearchViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
-
-//        LaunchedEffect(true) {
-//            viewModel.navigation.collect { navigationEvent ->
-//                when (navigationEvent) {
-//                    is SearchScreenNavigation.NavigateToDetails -> {
-//                        navController.navigate(
-//                            Screen.Details.createRoute(navigationEvent.characterId)
-//                        )
-//                    }
-//                }
-//            }
-//        }
         SearchScreen(
             state = state,
             onEvent = viewModel::onEvent,
             onNavigateToDetails = { characterId ->
-                viewModel.onEvent(SearchScreenEvent.OnCharacterClick(characterId))
+                navController.navigate(Screen.Details.createRoute(characterId))
             }
         )
     }

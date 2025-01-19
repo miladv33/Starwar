@@ -140,7 +140,9 @@ fun CharactersList(
         ) { character ->
             CharacterCard(
                 character = character,
-                onClick = { onCharacterClick(character.id) }
+                onClick = {
+                    onCharacterClick(character.id)
+                }
             )
         }
     }
