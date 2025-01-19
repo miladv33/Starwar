@@ -1,6 +1,5 @@
 package com.example.snapfood.presentation.ui.search
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 
 import androidx.compose.foundation.background
@@ -11,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -21,13 +20,13 @@ import com.example.snapfood.R
 import com.example.snapfood.domain.model.CharacterUiModel
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
-import com.example.snapfood.presentation.ui.common.CommonSpacing
 
 @Composable
 fun SearchScreen(
     state: SearchScreenState,
     modifier: Modifier = Modifier,
-    onEvent: (SearchScreenEvent) -> Unit
+    onEvent: (SearchScreenEvent) -> Unit,
+    onNavigateToDetails: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -40,11 +39,33 @@ fun SearchScreen(
             query = state.searchQuery,
             onQueryChange = { onEvent(SearchScreenEvent.OnSearchQueryChange(it)) }
         )
-        Log.i("SearchScreenTAG", "SearchScreen: ${state.characters}")
-        CharactersList(
-            characters = state.characters,
-            onCharacterClick = { onEvent(SearchScreenEvent.OnCharacterClick(it)) }
-        )
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            if (state.characters.isEmpty() && state.searchQuery.isNotBlank()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No characters found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            } else {
+                CharactersList(
+                    characters = state.characters,
+                    onCharacterClick = onNavigateToDetails
+                )
+            }
+        }
     }
 }
 
@@ -257,7 +278,8 @@ fun SearchScreenPreview() {
                     )
                 )
             ),
-            onEvent = {}
+            onEvent = {},
+            onNavigateToDetails = {}
         )
     }
 }
@@ -287,7 +309,8 @@ fun SearchScreenDarkPreview() {
                     )
                 )
             ),
-            onEvent = {}
+            onEvent = {},
+            onNavigateToDetails = {}
         )
     }
 }

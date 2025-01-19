@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface StarWarsApi {
 
-    @GET("people")
+    @GET("people/")
     suspend fun getPeople(
         @Query("search") keyword: String = ""
     ): ResponseWrapper<Character>

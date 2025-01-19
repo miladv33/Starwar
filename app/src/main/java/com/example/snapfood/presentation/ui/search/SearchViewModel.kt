@@ -1,16 +1,19 @@
 package com.example.snapfood.presentation.ui.search
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snapfood.domain.model.CharacterUiModel
 import com.example.snapfood.domain.model.Resources
+import com.example.snapfood.domain.model.SimpleCharacter
 import com.example.snapfood.domain.usecase.SearchCharactersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,71 +25,99 @@ class SearchViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(SearchScreenState())
     val state = _state.asStateFlow()
+    private val _navigation = Channel<SearchScreenNavigation>()
+    val navigation = _navigation.receiveAsFlow()
+    private var searchJob: Job? = null
 
-    // Add a SharedFlow for navigation events
-    private val _navigation = MutableSharedFlow<SearchScreenNavigation>()
-    val navigation = _navigation.asSharedFlow()
-
-    fun onEvent(event: SearchScreenEvent) = when (event) {
-        is SearchScreenEvent.OnSearchQueryChange -> searchCharacters(event.query)
-        is SearchScreenEvent.OnCharacterClick -> onCharacterSelected(event.characterId)
-    }
-
-    private fun searchCharacters(query: String) {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    searchQuery = query,
-                    isLoading = true
-                )
-            }
-            searchCharactersUseCase(query).collect { result ->
-                when (result) {
-                    is Resources.Loading -> {
-                        _state.update {
-                            it.copy(
-                                characters = emptyList(),
-                                isLoading = true
-                            )
-                        }
-                    }
-
-                    is Resources.Error -> {
-                        _state.update {
-                            it.copy(
-                                characters = emptyList(),
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                    is Resources.Success -> {
-                        println("Data in View model  ${result.data}")
-                        _state.update {
-                            it.copy(
-                                characters = result.data?.map { char ->
-                                    CharacterUiModel(
-                                        id = char.id,
-                                        name = char.name,
-                                        description = char.description
-                                    )
-                                } ?: emptyList(),
-                                isLoading = false
-                            )
-                        }
-                        Log.d("TAG", "searchCharacters: ${state.value}")
-                    }
-                }
-            }
+    fun onEvent(event: SearchScreenEvent) {
+        when (event) {
+            is SearchScreenEvent.OnSearchQueryChange -> updateSearchQuery(event.query)
+            is SearchScreenEvent.OnCharacterClick -> navigateToDetails(event.characterId)
         }
     }
 
-    private fun onCharacterSelected(characterId: String) {
+    private fun updateSearchQuery(query: String) {
+        _state.update { it.copy(searchQuery = query) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch { searchCharacters() }
+    }
+
+    private fun navigateToDetails(characterId: String) {
         viewModelScope.launch {
-            _navigation.emit(SearchScreenNavigation.NavigateToDetails(characterId))
+            _navigation.send(SearchScreenNavigation.NavigateToDetails(characterId))
         }
     }
 
+    private suspend fun searchCharacters() {
+        val currentQuery = state.value.searchQuery
+
+        if (currentQuery.isBlank()) {
+            clearSearchResults()
+            return
+        }
+
+        searchCharactersUseCase(currentQuery)
+            .onStart { setLoading(true) }
+            .catch { error ->
+                handleError(error)
+            }
+            .collect { result ->
+                handleSearchResult(result)
+            }
+    }
+
+    private fun clearSearchResults() {
+        _state.update {
+            it.copy(
+                characters = emptyList(),
+                isLoading = false,
+            )
+        }
+    }
+
+    private fun setLoading(isLoading: Boolean) {
+        _state.update { it.copy(isLoading = isLoading) }
+    }
+
+    private fun handleError(error: Throwable) {
+        _state.update {
+            it.copy(
+                isLoading = false,
+                characters = emptyList(),
+            )
+        }
+    }
+
+    private fun handleSearchResult(result: Resources<List<SimpleCharacter>>) {
+        when (result) {
+            is Resources.Success -> updateCharactersList(result.data)
+            is Resources.Error -> handleSearchError(result.message)
+            is Resources.Loading -> setLoading(result.isLoading)
+        }
+    }
+
+    private fun updateCharactersList(characters: List<SimpleCharacter>?) {
+        _state.update { currentState ->
+            currentState.copy(
+                characters = characters?.map { it.toUiModel() } ?: emptyList(),
+                isLoading = false,
+            )
+        }
+    }
+
+    private fun handleSearchError(message: String?) {
+        _state.update {
+            it.copy(
+                isLoading = false,
+                characters = emptyList(),
+            )
+        }
+    }
 }
 
-
+// Extension function to map domain model to UI model
+private fun SimpleCharacter.toUiModel() = CharacterUiModel(
+    id = id,
+    name = name,
+    description = description
+)
