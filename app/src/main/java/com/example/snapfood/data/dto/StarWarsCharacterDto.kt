@@ -2,7 +2,7 @@ package com.example.snapfood.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class Character(
+data class StarWarsCharacterDto(
     val id: String,
     @SerializedName("name")
     val name: String,
@@ -29,7 +29,7 @@ data class Character(
     val gender: String,
 
     @SerializedName("homeworld")
-    val homeworld: String,
+    val homeWorld: String,
 
     @SerializedName("films")
     val films: List<String>,

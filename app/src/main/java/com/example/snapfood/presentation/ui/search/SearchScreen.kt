@@ -10,23 +10,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.snapfood.R
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
-import com.example.snapfood.presentation.ui.common.CommonSpacing
 
 @Composable
 fun SearchScreen(
     state: SearchScreenState,
+    modifier: Modifier = Modifier,
     onEvent: (SearchScreenEvent) -> Unit,
-    modifier: Modifier = Modifier
+    onNavigateToDetails: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -39,10 +39,33 @@ fun SearchScreen(
             query = state.searchQuery,
             onQueryChange = { onEvent(SearchScreenEvent.OnSearchQueryChange(it)) }
         )
-        CharactersList(
-            characters = state.characters,
-            onCharacterClick = { onEvent(SearchScreenEvent.OnCharacterClick(it)) }
-        )
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            if (state.characters.isEmpty() && state.searchQuery.isNotBlank()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_characters_found),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            } else {
+                CharactersList(
+                    characters = state.characters,
+                    onCharacterClick = onNavigateToDetails
+                )
+            }
+        }
     }
 }
 
@@ -101,7 +124,7 @@ fun SearchBox(
 
 @Composable
 fun CharactersList(
-    characters: List<CharacterUiModel>,
+    characters: List<StarWarsCharacter>,
     onCharacterClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -117,7 +140,9 @@ fun CharactersList(
         ) { character ->
             CharacterCard(
                 character = character,
-                onClick = { onCharacterClick(character.id) }
+                onClick = {
+                    onCharacterClick(character.id)
+                }
             )
         }
     }
@@ -149,7 +174,6 @@ fun SearchBoxPreview() {
     }
 }
 
-// Define dimensions and spacings in a separate object
 object CharacterCardDefaults {
     val CardCornerRadius = 8.dp
     val ContentPadding = 16.dp
@@ -158,7 +182,7 @@ object CharacterCardDefaults {
 
 @Composable
 fun CharacterCard(
-    character: CharacterUiModel,
+    character: StarWarsCharacter,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -170,7 +194,7 @@ fun CharacterCard(
     ) {
         CharacterCardContent(
             name = character.name,
-            description = character.description,
+            description = character.getDescription(),
             modifier = Modifier.padding(CharacterCardDefaults.ContentPadding)
         )
     }
@@ -199,16 +223,26 @@ private fun CharacterCardContent(
     }
 }
 
-// Preview
 @Preview(showBackground = true)
 @Composable
 private fun CharacterCardPreview() {
     SnapFoodTheme {
         CharacterCard(
-            character = CharacterUiModel(
+            character = StarWarsCharacter(
                 id = "1",
                 name = "Luke Skywalker",
-                description = "Human from Tatooine"
+                birthYear = "19 BBY",
+                height = "172",
+                mass = "77",
+                hairColor = "blond",
+                skinColor = "fair",
+                eyeColor = "blue",
+                gender = "male",
+                homeWorld = "Tatooine",
+                films = emptyList(),
+                species = emptyList(),
+                vehicles = emptyList(),
+                starships = emptyList()
             ),
             onClick = {}
         )
@@ -216,20 +250,6 @@ private fun CharacterCardPreview() {
 }
 
 // Dark theme preview
-@Preview(showBackground = true)
-@Composable
-private fun CharacterCardDarkPreview() {
-    SnapFoodTheme(darkTheme = true) {
-        CharacterCard(
-            character = CharacterUiModel(
-                id = "1",
-                name = "Luke Skywalker",
-                description = "Human from Tatooine"
-            ),
-            onClick = {}
-        )
-    }
-}
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun SearchScreenPreview() {
@@ -238,54 +258,26 @@ fun SearchScreenPreview() {
             state = SearchScreenState(
                 searchQuery = "Luke",
                 characters = listOf(
-                    CharacterUiModel(
+                    StarWarsCharacter(
                         id = "1",
                         name = "Luke Skywalker",
-                        description = "Human from Tatooine"
-                    ),
-                    CharacterUiModel(
-                        id = "2",
-                        name = "Leia Organa",
-                        description = "Human from Alderaan"
-                    ),
-                    CharacterUiModel(
-                        id = "3",
-                        name = "Han Solo",
-                        description = "Human from Corellia"
+                        birthYear = "19 BBY",
+                        height = "172",
+                        mass = "77",
+                        hairColor = "blond",
+                        skinColor = "fair",
+                        eyeColor = "blue",
+                        gender = "male",
+                        homeWorld = "Tatooine",
+                        films = emptyList(),
+                        species = emptyList(),
+                        vehicles = emptyList(),
+                        starships = emptyList()
                     )
                 )
             ),
-            onEvent = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun SearchScreenDarkPreview() {
-    SnapFoodTheme(darkTheme = true) {
-        SearchScreen(
-            state = SearchScreenState(
-                searchQuery = "Luke",
-                characters = listOf(
-                    CharacterUiModel(
-                        id = "1",
-                        name = "Luke Skywalker",
-                        description = "Human from Tatooine"
-                    ),
-                    CharacterUiModel(
-                        id = "2",
-                        name = "Leia Organa",
-                        description = "Human from Alderaan"
-                    ),
-                    CharacterUiModel(
-                        id = "3",
-                        name = "Han Solo",
-                        description = "Human from Corellia"
-                    )
-                )
-            ),
-            onEvent = {}
+            onEvent = {},
+            onNavigateToDetails = {}
         )
     }
 }

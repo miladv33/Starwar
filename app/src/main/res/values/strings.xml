@@ -2,4 +2,15 @@
     <string name="app_name">SnapFood</string>
     <string name="search_screen_title">Star Wars Characters</string>
     <string name="search_placeholder">Search characters…</string>
+    <string name="basic_information">Basic Information</string>
+    <string name="species">Species</string>
+    <string name="films">Films</string>
+    <string name="no_films_available">No films available</string>
+    <string name="error_loading_film">Error loading film %1$s: %2$s</string>
+    <string name="no_species_information_available">No species information available</string>
+    <string name="classification">Classification</string>
+    <string name="language">Language</string>
+    <string name="designation">Designation</string>
+    <string name="average_lifespan">Average Lifespan</string>
+    <string name="no_characters_found">No characters found</string>
 </resources>

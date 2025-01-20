@@ -1,5 +1,7 @@
 [versions]
 agp = "8.4.0"
+animation = "1.7.6"
+collectionKtx = "1.4.5"
 converterGson = "2.9.0"
 gson = "2.10.1"
 hiltAndroid = "2.54"
@@ -20,6 +22,8 @@ stetho = "1.5.1"
 stethoOkhttp3 = "1.5.1"
 
 [libraries]
+androidx-animation = { module = "androidx.compose.animation:animation", version.ref = "animation" }
+androidx-collection-ktx = { module = "androidx.collection:collection-ktx", version.ref = "collectionKtx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

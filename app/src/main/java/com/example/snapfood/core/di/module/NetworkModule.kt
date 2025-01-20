@@ -1,12 +1,10 @@
 package com.example.snapfood.core.di.module
 
-import com.example.snapfood.core.di.qualifier.Concrete
-import com.example.snapfood.core.di.qualifier.Stub
 import com.example.snapfood.core.di.qualifier.WithToken
 import com.example.snapfood.core.di.qualifier.WithoutToken
 import com.example.snapfood.data.api.StarWarsApi
 import com.example.snapfood.util.SecretFields
-import com.facebook.stetho.BuildConfig
+import com.facebook.stetho.okhttp3.BuildConfig
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -198,8 +196,8 @@ object NetworkModule {
     }
 
     @Provides
-    @Concrete
-    fun provideConcreteCryptoDataSource(@WithoutToken retrofit: Retrofit): StarWarsApi {
+    @Singleton
+    fun provideConcreteStarWarsApi(@WithoutToken retrofit: Retrofit): StarWarsApi {
         return retrofit.create(StarWarsApi::class.java)
     }
 }
