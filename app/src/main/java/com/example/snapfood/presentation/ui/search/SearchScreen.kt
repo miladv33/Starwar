@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.snapfood.R
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
 
@@ -124,7 +124,7 @@ fun SearchBox(
 
 @Composable
 fun CharactersList(
-    characters: List<CharacterUiModel>,
+    characters: List<StarWarsCharacter>,
     onCharacterClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -183,7 +183,7 @@ object CharacterCardDefaults {
 
 @Composable
 fun CharacterCard(
-    character: CharacterUiModel,
+    character: StarWarsCharacter,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -194,8 +194,8 @@ fun CharacterCard(
             .clickable(onClick = onClick)
     ) {
         CharacterCardContent(
-            characterName = character.characterName,
-            description = character.description,
+            name = character.name,
+            description = character.getDescription(),
             modifier = Modifier.padding(CharacterCardDefaults.ContentPadding)
         )
     }
@@ -203,13 +203,13 @@ fun CharacterCard(
 
 @Composable
 private fun CharacterCardContent(
-    characterName: String,
+    name: String,
     description: String,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         Text(
-            text = characterName,
+            text = name,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -224,16 +224,26 @@ private fun CharacterCardContent(
     }
 }
 
-// Preview
 @Preview(showBackground = true)
 @Composable
 private fun CharacterCardPreview() {
     SnapFoodTheme {
         CharacterCard(
-            character = CharacterUiModel(
+            character = StarWarsCharacter(
                 id = "1",
-                characterName = "Luke Skywalker",
-                description = "Human from Tatooine"
+                name = "Luke Skywalker",
+                birthYear = "19 BBY",
+                height = "172",
+                mass = "77",
+                hairColor = "blond",
+                skinColor = "fair",
+                eyeColor = "blue",
+                gender = "male",
+                homeWorld = "Tatooine",
+                films = emptyList(),
+                species = emptyList(),
+                vehicles = emptyList(),
+                starships = emptyList()
             ),
             onClick = {}
         )
@@ -241,20 +251,6 @@ private fun CharacterCardPreview() {
 }
 
 // Dark theme preview
-@Preview(showBackground = true)
-@Composable
-private fun CharacterCardDarkPreview() {
-    SnapFoodTheme(darkTheme = true) {
-        CharacterCard(
-            character = CharacterUiModel(
-                id = "1",
-                characterName = "Luke Skywalker",
-                description = "Human from Tatooine"
-            ),
-            onClick = {}
-        )
-    }
-}
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun SearchScreenPreview() {
@@ -263,52 +259,23 @@ fun SearchScreenPreview() {
             state = SearchScreenState(
                 searchQuery = "Luke",
                 characters = listOf(
-                    CharacterUiModel(
+                    StarWarsCharacter(
                         id = "1",
-                        characterName = "Luke Skywalker",
-                        description = "Human from Tatooine"
-                    ),
-                    CharacterUiModel(
-                        id = "2",
-                        characterName = "Leia Organa",
-                        description = "Human from Alderaan"
-                    ),
-                    CharacterUiModel(
-                        id = "3",
-                        characterName = "Han Solo",
-                        description = "Human from Corellia"
+                        name = "Luke Skywalker",
+                        birthYear = "19 BBY",
+                        height = "172",
+                        mass = "77",
+                        hairColor = "blond",
+                        skinColor = "fair",
+                        eyeColor = "blue",
+                        gender = "male",
+                        homeWorld = "Tatooine",
+                        films = emptyList(),
+                        species = emptyList(),
+                        vehicles = emptyList(),
+                        starships = emptyList()
                     )
-                )
-            ),
-            onEvent = {},
-            onNavigateToDetails = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun SearchScreenDarkPreview() {
-    SnapFoodTheme(darkTheme = true) {
-        SearchScreen(
-            state = SearchScreenState(
-                searchQuery = "Luke",
-                characters = listOf(
-                    CharacterUiModel(
-                        id = "1",
-                        characterName = "Luke Skywalker",
-                        description = "Human from Tatooine"
-                    ),
-                    CharacterUiModel(
-                        id = "2",
-                        characterName = "Leia Organa",
-                        description = "Human from Alderaan"
-                    ),
-                    CharacterUiModel(
-                        id = "3",
-                        characterName = "Han Solo",
-                        description = "Human from Corellia"
-                    )
+                    // ... other characters
                 )
             ),
             onEvent = {},

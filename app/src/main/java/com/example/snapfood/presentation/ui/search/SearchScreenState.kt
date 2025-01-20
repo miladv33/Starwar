@@ -1,9 +1,9 @@
 package com.example.snapfood.presentation.ui.search
 
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.StarWarsCharacter
 
 data class SearchScreenState(
     val searchQuery: String = "",
-    val characters: List<CharacterUiModel> = emptyList(),
+    val characters: List<StarWarsCharacter> = emptyList(),
     val isLoading: Boolean = false
 )

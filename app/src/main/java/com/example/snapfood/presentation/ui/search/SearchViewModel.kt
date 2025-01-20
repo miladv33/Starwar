@@ -2,17 +2,15 @@ package com.example.snapfood.presentation.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
 import com.example.snapfood.domain.usecase.SearchCharactersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -78,7 +76,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun handleSearchResult(result: Resources<List<CharacterUiModel>>) {
+    private fun handleSearchResult(result: Resources<List<StarWarsCharacter>>) {
         when (result) {
             is Resources.Success -> updateCharactersList(result.data)
             is Resources.Error -> handleSearchError()
@@ -86,10 +84,10 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun updateCharactersList(characters: List<CharacterUiModel>?) {
+    private fun updateCharactersList(characters: List<StarWarsCharacter>?) {
         _state.update { currentState ->
             currentState.copy(
-                characters = characters?.map { it.toUiModel() } ?: emptyList(),
+                characters = characters?.map { it } ?: emptyList(),
                 isLoading = false,
             )
         }
@@ -105,9 +103,3 @@ class SearchViewModel @Inject constructor(
     }
 }
 
-// Extension function to map domain model to UI model
-private fun CharacterUiModel.toUiModel() = CharacterUiModel(
-    id = id,
-    characterName = characterName,
-    description = description
-)

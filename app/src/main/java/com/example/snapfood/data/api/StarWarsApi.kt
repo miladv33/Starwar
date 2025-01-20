@@ -1,6 +1,6 @@
 package com.example.snapfood.data.api
 
-import com.example.snapfood.data.dto.Character
+import com.example.snapfood.data.dto.StarWarsCharacterDto
 import com.example.snapfood.data.dto.Film
 import com.example.snapfood.data.dto.ResponseWrapper
 import com.example.snapfood.data.dto.Starship
@@ -13,12 +13,12 @@ interface StarWarsApi {
     @GET("people/")
     suspend fun getPeople(
         @Query("search") keyword: String = ""
-    ): ResponseWrapper<Character>
+    ): ResponseWrapper<StarWarsCharacterDto>
 
     @GET("people/{characterId}")
     suspend fun  getCharacterDetail(
         @Path("characterId") characterId: String
-    ) : Character
+    ) : StarWarsCharacterDto
 
     @GET("film/filmId")
     suspend fun getFilm(

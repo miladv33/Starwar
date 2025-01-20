@@ -1,11 +1,9 @@
 package com.example.snapfood.presentation.ui.details
 
-import android.icu.text.IDNA.Info
-import androidx.core.app.NotificationCompat.MessagingStyle.Message
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
 import com.example.snapfood.domain.usecase.GetCharacterDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,11 +24,13 @@ class DetailsViewModel @Inject constructor(
     private val _state = MutableStateFlow(DetailScreenState())
     val state = _state.asStateFlow()
     private var job: Job? = null
+
     init {
         savedStateHandle.get<String>("characterId")?.let { characterId ->
             onEvent(DetailScreenEvent.OnGetDetailResult(characterId))
         }
     }
+
     fun onEvent(event: DetailScreenEvent) {
         when (event) {
             is DetailScreenEvent.OnGetDetailResult -> {
@@ -48,32 +48,32 @@ class DetailsViewModel @Inject constructor(
     private fun setLoading(isLoading: Boolean) {
         _state.update { it.copy(isLoading = isLoading) }
     }
+
     private fun handleError() {
         _state.update {
             it.copy(
                 isLoading = false,
-                character = Detail(),
+                character = null
             )
         }
     }
 
-    private fun handleResult(result: Resources<CharacterUiModel>) {
-        when(result){
-            is Resources.Success -> {updateUI(result.data)}
-            is Resources.Loading -> {setLoading(result.isLoading)}
-            is Resources.Error ->{handleError()}
+    private fun handleResult(result: Resources<StarWarsCharacter>) {
+        when(result) {
+            is Resources.Success -> updateUI(result.data)
+            is Resources.Loading -> setLoading(result.isLoading)
+            is Resources.Error -> handleError()
         }
     }
 
-    private fun updateUI(character: CharacterUiModel?) {
+    private fun updateUI(character: StarWarsCharacter?) {
         _state.update { currentState ->
             currentState.copy(
-                character = character?.toDetail() ?: Detail(),
+                character = character,
                 isLoading = false
             )
         }
     }
-
 
     private suspend fun getCharacterDetail(characterId: String) {
         getCharacterDetailsUseCase(characterId)
@@ -81,14 +81,8 @@ class DetailsViewModel @Inject constructor(
             .catch { error ->
                 handleError()
             }
-            .collect{ result ->
+            .collect { result ->
                 handleResult(result)
             }
     }
-    private fun CharacterUiModel.toDetail() = Detail(
-        basicInfo = listOf(InfoItem("Birth Year", birthYear), InfoItem("Hieght", height)),
-        speciesInfo = listOf(InfoItem("Species", homeWorld), InfoItem("Population", population)),
-        characterName = characterName,
-        description = description
-    )
 }

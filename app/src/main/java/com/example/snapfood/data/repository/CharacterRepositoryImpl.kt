@@ -1,67 +1,46 @@
 package com.example.snapfood.data.repository
 
-import com.example.snapfood.core.di.qualifier.Concrete
 import com.example.snapfood.data.api.StarWarsApi
-import com.example.snapfood.data.mapper.CharMapper
-import com.example.snapfood.domain.model.CharacterUiModel
+import com.example.snapfood.data.mapper.StarWarsCharacterDtoMapper
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
 import com.example.snapfood.domain.repository.CharacterRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import okio.IOException
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class CharacterRepositoryImpl @Inject constructor(
-    @Concrete private val api: StarWarsApi,
-    private val mapper: CharMapper
-) :
-    CharacterRepository {
-    override suspend fun searchCharacters(query: String): Flow<Resources<List<CharacterUiModel>>> {
+private val api: StarWarsApi,
+private val mapper: StarWarsCharacterDtoMapper
+) : CharacterRepository {
+    override suspend fun searchCharacters(query: String): Flow<Resources<List<StarWarsCharacter>>> {
         return flow {
             emit(Resources.Loading(true))
-
-            val result = try {
-                api.getPeople(query)
-            } catch (e: IOException) {
-                e.printStackTrace()
-                emit(Resources.Error("Could not load data"))
-                null
-            } catch (e: HttpException) {
-                e.printStackTrace()
-                emit(Resources.Error("Could not load data"))
-                null
-            }
-            if (result == null) {
+            try {
+                val response = api.getPeople(query)
+                val characters = response.results
+                    .map { mapper.toDomain(it) }
+                    .map { mapper.toCharacterUiModel(it) }
+                emit(Resources.Success(characters))
                 emit(Resources.Loading(false))
-            }
-            result?.results?.let { listing ->
-                emit(Resources.Success(data = mapper.mapToChars(listing)))
+            } catch (e: Exception) {
+                emit(Resources.Error("Could not load data"))
                 emit(Resources.Loading(false))
             }
         }
     }
 
-    override suspend fun getCharacterDetails(characterId: String): Flow<Resources<CharacterUiModel>> {
+    override suspend fun getCharacterDetails(characterId: String): Flow<Resources<StarWarsCharacter>> {
         return flow {
             emit(Resources.Loading(true))
-
-            val result = try {
-                api.getCharacterDetail(characterId)
-            } catch (e: IOException) {
-                e.printStackTrace()
-                emit(Resources.Error("Could not load data"))
-                null
-            } catch (e: HttpException) {
-                e.printStackTrace()
-                emit(Resources.Error("Could not load data"))
-                null
-            }
-            if (result == null) {
+            try {
+                val response = api.getCharacterDetail(characterId)
+                val character = mapper.toDomain(response)
+                val uiModel = mapper.toCharacterUiModel(character)
+                emit(Resources.Success(uiModel))
                 emit(Resources.Loading(false))
-            }
-            result?.let { char ->
-                emit(Resources.Success(data = mapper.mapIntoCharacter(char)))
+            } catch (e: Exception) {
+                emit(Resources.Error("Could not load data"))
                 emit(Resources.Loading(false))
             }
         }

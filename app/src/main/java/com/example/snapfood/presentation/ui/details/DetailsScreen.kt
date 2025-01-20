@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
 import com.example.snapfood.presentation.ui.common.CommonSpacing
@@ -34,7 +35,7 @@ fun DetailsScreen(
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         DetailHeader(
-            characterName = state.character.characterName,
+            characterName = state.character?.name ?: "",
             onBackClick = onBackClick
         )
 
@@ -46,11 +47,11 @@ fun DetailsScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
-            DetailContent(
-                basicInfo = state.character.basicInfo,
-                speciesInfo = state.character.speciesInfo,
-                films = state.character.films
-            )
+            state.character?.let { character ->
+                DetailContent(
+                    character = character
+                )
+            }
         }
     }
 }
@@ -86,13 +87,12 @@ fun DetailHeader(
             )
         }
     }
+
 }
 
 @Composable
 fun DetailContent(
-    basicInfo: List<InfoItem>,
-    speciesInfo: List<InfoItem>,
-    films: List<Film>,
+    character: StarWarsCharacter,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -104,21 +104,21 @@ fun DetailContent(
         item {
             InfoSection(
                 title = "Basic Information",
-                items = basicInfo
+                items = character.getBasicInfo()
             )
         }
 
         item {
             InfoSection(
                 title = "Species Information",
-                items = speciesInfo
+                items = character.getSpeciesInfo()
             )
         }
 
         item {
             FilmsSection(
                 title = "Films",
-                films = films
+                films = character.films
             )
         }
     }
@@ -127,7 +127,7 @@ fun DetailContent(
 @Composable
 fun InfoSection(
     title: String,
-    items: List<InfoItem>,
+    items: List<Pair<String, String>>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -149,23 +149,21 @@ fun InfoSection(
 
 @Composable
 fun InfoItemCard(
-    item: InfoItem,
+    info: Pair<String, String>,
     modifier: Modifier = Modifier
 ) {
-    CommonCard(
-        modifier = modifier
-    ) {
+    CommonCard(modifier = modifier) {
         Column(
             modifier = Modifier.padding(CommonSpacing.cardPadding)
         ) {
             Text(
-                text = item.label,
+                text = info.first,  // label
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = item.value,
+                text = info.second,  // value
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -176,7 +174,7 @@ fun InfoItemCard(
 @Composable
 fun FilmsSection(
     title: String,
-    films: List<Film>,
+    films: List<String>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -198,7 +196,7 @@ fun FilmsSection(
 
 @Composable
 fun FilmCard(
-    film: Film,
+    title: String,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -210,23 +208,16 @@ fun FilmCard(
             modifier = Modifier.padding(15.dp)
         ) {
             Text(
-                text = film.title,
+                text = title,
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold
                 ),
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = film.crawl,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontStyle = FontStyle.Italic
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -244,7 +235,7 @@ fun DetailHeaderPreview() {
 fun InfoItemCardPreview() {
     SnapFoodTheme {
         InfoItemCard(
-            InfoItem("Birth Year", "19 BBY")
+            Pair("Birth Year", "19 BBY")
         )
     }
 }
@@ -254,10 +245,7 @@ fun InfoItemCardPreview() {
 fun FilmCardPreview() {
     SnapFoodTheme {
         FilmCard(
-            Film(
-                "Episode IV: A New Hope",
-                "It is a period of civil war. Rebel spaceships, striking from a hidden base..."
-            )
+            title = "Episode IV: A New Hope"
         )
     }
 }
@@ -268,53 +256,22 @@ fun DetailsScreenPreview() {
     SnapFoodTheme {
         DetailsScreen(
             state = DetailScreenState(
-                character = Detail(
-                    characterName = "Luke Skywalker",
-                    basicInfo = listOf(
-                        InfoItem("Birth Year", "19 BBY"),
-                        InfoItem("Height", "172 cm")
-                    ),
-                    speciesInfo = listOf(
-                        InfoItem("Species", "Human"),
-                        InfoItem("Language", "Basic")
-                    ),
-                    films = listOf(
-                        Film(
-                            "Episode IV: A New Hope",
-                            "It is a period of civil war..."
-                        )
-                    )
-                ),
-            ),
-            onEvent = {},
-            onBackClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun DetailsScreenDarkPreview() {
-    SnapFoodTheme(darkTheme = true) {
-        DetailsScreen(
-            state = DetailScreenState(
-                character = Detail(
-                    characterName = "Luke Skywalker",
-                    basicInfo = listOf(
-                        InfoItem("Birth Year", "19 BBY"),
-                        InfoItem("Height", "172 cm")
-                    ),
-                    speciesInfo = listOf(
-                        InfoItem("Species", "Human"),
-                        InfoItem("Language", "Basic")
-                    ),
-                    films = listOf(
-                        Film(
-                            "Episode IV: A New Hope",
-                            "It is a period of civil war..."
-                        )
-                    )
-                ),
+                character = StarWarsCharacter(
+                    id = "1",
+                    name = "Luke Skywalker",
+                    birthYear = "19 BBY",
+                    height = "172",
+                    mass = "77",
+                    hairColor = "blond",
+                    skinColor = "fair",
+                    eyeColor = "blue",
+                    gender = "male",
+                    homeWorld = "Tatooine",
+                    films = listOf("A New Hope", "Empire Strikes Back"),
+                    species = emptyList(),
+                    vehicles = emptyList(),
+                    starships = emptyList()
+                )
             ),
             onEvent = {},
             onBackClick = {}
