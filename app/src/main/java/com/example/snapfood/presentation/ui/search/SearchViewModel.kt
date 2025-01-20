@@ -19,17 +19,31 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchCharactersUseCase: SearchCharactersUseCase,
-    private val getAllCharactersUseCase: GetAllCharactersUseCase
-
+    private val getAllCharactersUseCase: GetAllCharactersUseCase,
+    private val searchDebouncer: SearchDebouncer
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SearchScreenState())
     val state = _state.asStateFlow()
-    private var searchJob: Job? = null
 
     init {
         onEvent(SearchScreenEvent.LoadInitialCharacters)
+        setupSearchDebouncing()
     }
+
+    private fun setupSearchDebouncing() {
+        viewModelScope.launch {
+            searchDebouncer.getQueryFlow()
+                .collect { query ->
+                    if (query.isNotBlank()) {
+                        performSearch(query)
+                    } else {
+                        clearSearchResults()
+                    }
+                }
+        }
+    }
+
     fun onEvent(event: SearchScreenEvent) {
         when (event) {
             is SearchScreenEvent.OnSearchQueryChange -> updateSearchQuery(event.query)
@@ -52,19 +66,11 @@ class SearchViewModel @Inject constructor(
 
     private fun updateSearchQuery(query: String) {
         _state.update { it.copy(searchQuery = query) }
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch { searchCharacters() }
+        searchDebouncer.setQuery(query)
     }
 
-    private suspend fun searchCharacters() {
-        val currentQuery = state.value.searchQuery
-
-        if (currentQuery.isBlank()) {
-            clearSearchResults()
-            return
-        }
-
-        searchCharactersUseCase(currentQuery)
+    private suspend fun performSearch(query: String) {
+        searchCharactersUseCase(query)
             .onStart { setLoading(true) }
             .catch { error ->
                 handleError(error)
