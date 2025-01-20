@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
+import com.example.snapfood.domain.usecase.GetAllCharactersUseCase
 import com.example.snapfood.domain.usecase.SearchCharactersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -17,16 +18,35 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchCharactersUseCase: SearchCharactersUseCase
+    private val searchCharactersUseCase: SearchCharactersUseCase,
+    private val getAllCharactersUseCase: GetAllCharactersUseCase
+
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SearchScreenState())
     val state = _state.asStateFlow()
     private var searchJob: Job? = null
 
+    init {
+        onEvent(SearchScreenEvent.LoadInitialCharacters)
+    }
     fun onEvent(event: SearchScreenEvent) {
         when (event) {
             is SearchScreenEvent.OnSearchQueryChange -> updateSearchQuery(event.query)
+            SearchScreenEvent.LoadInitialCharacters -> loadInitialCharacters()
+        }
+    }
+
+    private fun loadInitialCharacters() {
+        viewModelScope.launch {
+            getAllCharactersUseCase()
+                .onStart { setLoading(true) }
+                .catch { error ->
+                    handleError(error)
+                }
+                .collect { result ->
+                    handleSearchResult(result)
+                }
         }
     }
 
