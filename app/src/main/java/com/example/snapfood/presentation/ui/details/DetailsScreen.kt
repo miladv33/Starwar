@@ -11,12 +11,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.snapfood.R
 import com.example.snapfood.domain.model.FilmInfo
+import com.example.snapfood.domain.model.SpeciesInfo
 import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
@@ -24,9 +28,7 @@ import com.example.snapfood.presentation.ui.common.CommonSpacing
 
 @Composable
 fun DetailsScreen(
-    characterName: String = "Luke Skywalker",
     state: DetailScreenState,
-    onEvent: (DetailScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit
 ) {
@@ -54,7 +56,10 @@ fun DetailsScreen(
                     character = character,
                     films = state.films,
                     loadingFilms = state.loadingFilms,
-                    errorFilms = state.errorFilms
+                    errorFilms = state.errorFilms,
+                    species = state.species,
+                    loadingSpecies = state.loadingSpecies,
+                    errorSpecies = state.errorSpecies,
                 )
             }
         }
@@ -99,8 +104,11 @@ fun DetailHeader(
 fun DetailContent(
     character: StarWarsCharacter,
     films: Map<String, FilmInfo>,
+    species: Map<String, SpeciesInfo>,
     loadingFilms: Set<String>,
+    loadingSpecies: Set<String>,
     errorFilms: Map<String, String>,
+    errorSpecies: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -111,21 +119,23 @@ fun DetailContent(
     ) {
         item {
             InfoSection(
-                title = "Basic Information",
+                title = stringResource(R.string.basic_information),
                 items = character.getBasicInfo()
             )
         }
 
         item {
-            InfoSection(
-                title = "Species Information",
-                items = character.getSpeciesInfo()
+            SpeciesSection(
+                title = stringResource(R.string.species),
+                species = species,
+                loadingSpecies = loadingSpecies,
+                errorSpecies = errorSpecies
             )
         }
 
         item {
             FilmsSection(
-                title = "Films",
+                title = stringResource(R.string.films),
                 films = films,
                 loadingFilms = loadingFilms,
                 errorFilms = errorFilms
@@ -167,13 +177,13 @@ fun InfoItemCard(
             modifier = Modifier.padding(CommonSpacing.cardPadding)
         ) {
             Text(
-                text = info.first,  // label
+                text = info.first,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = info.second,  // value
+                text = info.second,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -201,20 +211,26 @@ fun FilmsSection(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        // Get all film IDs (both loading and loaded)
-        val allFilmIds = (films.keys + loadingFilms).toList().sorted()
-
-        allFilmIds.forEach { filmId ->
-            FilmCard(
-                filmId = filmId,
-                filmInfo = films[filmId],
-                isLoading = filmId in loadingFilms,
-                error = errorFilms[filmId]
-            )
+        when {
+            loadingFilms.isNotEmpty() -> {
+                LoadingCard()
+            }
+            films.isEmpty() -> {
+                EmptyStateCard(message = stringResource(R.string.no_films_available))
+            }
+            else -> {
+                films.forEach { (filmId, filmInfo) ->
+                    FilmCard(
+                        filmId = filmId,
+                        filmInfo = filmInfo,
+                        isLoading = false,
+                        error = errorFilms[filmId]
+                    )
+                }
+            }
         }
     }
 }
-
 @Composable
 fun FilmCard(
     filmId: String,
@@ -244,13 +260,15 @@ fun FilmCard(
                         )
                     }
                 }
+
                 error != null -> {
                     Text(
-                        text = "Error loading film $filmId: $error",
+                        text = stringResource(R.string.error_loading_film, filmId, error),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
+
                 filmInfo != null -> {
                     Text(
                         text = filmInfo.title,
@@ -275,6 +293,147 @@ fun FilmCard(
     }
 }
 
+@Composable
+fun SpeciesSection(
+    title: String,
+    species: Map<String, SpeciesInfo>,
+    loadingSpecies: Set<String>,
+    errorSpecies: Map<String, String>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        when {
+            loadingSpecies.isNotEmpty() -> {
+                LoadingCard()
+            }
+            species.isEmpty() -> {
+                EmptyStateCard(message = stringResource(R.string.no_species_information_available))
+            }
+            else -> {
+                species.forEach { (speciesId, speciesInfo) ->
+                    SpeciesCard(
+                        speciesId = speciesId,
+                        speciesInfo = speciesInfo,
+                        isLoading = false,
+                        error = errorSpecies[speciesId]
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LoadingCard(
+    modifier: Modifier = Modifier
+) {
+    CommonCard(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.primary,
+                strokeWidth = 2.dp
+            )
+        }
+    }
+}
+
+@Composable
+fun SpeciesCard(
+    speciesId: String,
+    speciesInfo: SpeciesInfo?,
+    isLoading: Boolean,
+    error: String?,
+    modifier: Modifier = Modifier
+) {
+    CommonCard(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(15.dp)
+        ) {
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+
+                error != null -> {
+                    Text(
+                        text = "Error loading species $speciesId: $error",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                speciesInfo != null -> {
+                    Text(
+                        text = speciesInfo.name,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SpeciesDetails(speciesInfo)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpeciesDetails(speciesInfo: SpeciesInfo) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        SpeciesDetailItem(stringResource(R.string.classification), speciesInfo.classification)
+        SpeciesDetailItem(stringResource(R.string.language), speciesInfo.language)
+        SpeciesDetailItem(stringResource(R.string.designation), speciesInfo.designation)
+        SpeciesDetailItem(stringResource(R.string.average_lifespan), speciesInfo.averageLifespan)
+    }
+}
+
+@Composable
+private fun SpeciesDetailItem(label: String, value: String) {
+    Row {
+        Text(
+            text = "$label: ",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun DetailHeaderPreview() {
@@ -285,6 +444,28 @@ fun DetailHeaderPreview() {
         )
     }
 }
+@Composable
+fun EmptyStateCard(
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    CommonCard(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -336,7 +517,6 @@ fun DetailsScreenPreview() {
                     starships = emptyList()
                 )
             ),
-            onEvent = {},
             onBackClick = {}
         )
     }

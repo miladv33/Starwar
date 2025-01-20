@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.snapfood.domain.model.FilmInfo
 import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
+import com.example.snapfood.domain.model.SpeciesInfo
 import com.example.snapfood.domain.usecase.GetCharacterDetailsUseCase
 import com.example.snapfood.domain.usecase.GetFilmInfoUseCase
+import com.example.snapfood.domain.usecase.GetSpeciesInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class DetailsViewModel @Inject constructor(
     private val getCharacterDetailsUseCase: GetCharacterDetailsUseCase,
     private val getFilmInfoUseCase: GetFilmInfoUseCase,
+    private val getSpeciesInfoUseCase: GetSpeciesInfoUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailScreenState())
@@ -58,6 +61,49 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
+    private fun loadSpeciesDetails(speciesIds: List<String>) {
+        _state.update { it.copy(loadingSpecies = it.loadingSpecies + speciesIds) }
+
+        speciesIds.forEach { speciesId ->
+            viewModelScope.launch {
+                getSpeciesInfoUseCase(speciesId)
+                    .collect { result ->
+                        when (result) {
+                            is Resources.Success -> {
+                                result.data?.let { updateSpeciesInfo(it) }
+                                removeSpeciesFromLoading(speciesId)
+                            }
+                            is Resources.Error -> {
+                                updateSpeciesError(speciesId, result.message ?: "Unknown error")
+                                removeSpeciesFromLoading(speciesId)
+                            }
+                            is Resources.Loading -> {} // Already handled
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun updateSpeciesInfo(speciesInfo: SpeciesInfo) {
+        _state.update { currentState ->
+            currentState.copy(
+                species = currentState.species + (speciesInfo.id to speciesInfo),
+                errorSpecies = currentState.errorSpecies - speciesInfo.id
+            )
+        }
+    }
+
+    private fun updateSpeciesError(speciesId: String, error: String) {
+        _state.update { currentState ->
+            currentState.copy(
+                errorSpecies = currentState.errorSpecies + (speciesId to error)
+            )
+        }
+    }
+
+    private fun removeSpeciesFromLoading(speciesId: String) {
+        _state.update { it.copy(loadingSpecies = it.loadingSpecies - speciesId) }
+    }
     private fun loadFilmDetails(filmIds: List<String>) {
         // Add films to loading state
         _state.update { it.copy(loadingFilms = it.loadingFilms + filmIds) }
@@ -114,5 +160,9 @@ class DetailsViewModel @Inject constructor(
 
     private fun updateUI(character: StarWarsCharacter?) {
         _state.update { it.copy(character = character, isLoading = false) }
+        character?.let {
+            loadFilmDetails(character.films)
+            loadSpeciesDetails(character.species)
+        }
     }
 }

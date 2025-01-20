@@ -18,7 +18,7 @@ class StarWarsCharacterDtoMapper @Inject constructor() {
             gender = dto.gender,
             homeWorld = dto.homeWorld,
             films = dto.films.map { it.extractId() },
-            species = dto.species,
+            species = dto.species.map { it.extractId() },
             vehicles = dto.vehicles,
             starships = dto.starships
         )

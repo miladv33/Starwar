@@ -54,7 +54,7 @@ fun SearchScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No characters found",
+                        text = stringResource(R.string.no_characters_found),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -174,7 +174,6 @@ fun SearchBoxPreview() {
     }
 }
 
-// Define dimensions and spacings in a separate object
 object CharacterCardDefaults {
     val CardCornerRadius = 8.dp
     val ContentPadding = 16.dp
@@ -275,7 +274,6 @@ fun SearchScreenPreview() {
                         vehicles = emptyList(),
                         starships = emptyList()
                     )
-                    // ... other characters
                 )
             ),
             onEvent = {},

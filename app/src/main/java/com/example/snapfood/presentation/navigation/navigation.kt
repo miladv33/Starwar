@@ -35,13 +35,10 @@ fun NavGraphBuilder.starWarsNavGraph(navController: NavHostController) {
     composable(
         route = Screen.Details.route,
     ) { backStackEntry ->
-        val characterId = backStackEntry.arguments?.getString("characterId") ?: ""
         val viewModel: DetailsViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
         DetailsScreen(
             state = state,
-            characterName = characterId,
-            onEvent = viewModel::onEvent,
             onBackClick = {
                 navController.popBackStack()
             }
