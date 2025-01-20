@@ -2,41 +2,42 @@ package com.example.snapfood.data.api
 
 import com.example.snapfood.data.dto.StarWarsCharacterDto
 import com.example.snapfood.data.dto.Film
+import com.example.snapfood.data.dto.Planet
 import com.example.snapfood.data.dto.ResponseWrapper
+import com.example.snapfood.data.dto.Species
 import com.example.snapfood.data.dto.Starship
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface StarWarsApi {
-
     @GET("people/")
     suspend fun getPeople(
         @Query("search") keyword: String = ""
     ): ResponseWrapper<StarWarsCharacterDto>
 
     @GET("people/{characterId}")
-    suspend fun  getCharacterDetail(
+    suspend fun getCharacterDetail(
         @Path("characterId") characterId: String
-    ) : StarWarsCharacterDto
+    ): StarWarsCharacterDto
 
-    @GET("film/filmId")
+    @GET("films/{filmId}")
     suspend fun getFilm(
         @Path("filmId") filmId: String
-    ) : Film
+    ): Film
 
-    @GET("planets/planetId")
+    @GET("planets/{planetId}")
     suspend fun getPlanet(
-        @Path("planetId") filmId: String
-    ) : Film
+        @Path("planetId") planetId: String
+    ): Planet
 
-    @GET("starships/starshipId")
+    @GET("starships/{starshipId}")
     suspend fun getStarship(
-        @Path("starshipId") filmId: String
-    ) : Starship
+        @Path("starshipId") starshipId: String
+    ): Starship
 
-    @GET("species/specieId")
+    @GET("species/{specieId}")
     suspend fun getSpecies(
-        @Path("starshipId") filmId: String
-    ) : Starship
+        @Path("specieId") specieId: String
+    ): Species
 }
