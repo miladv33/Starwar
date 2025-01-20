@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.snapfood.domain.model.FilmInfo
 import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.presentation.theme.SnapFoodTheme
 import com.example.snapfood.presentation.ui.common.CommonCard
@@ -49,7 +51,10 @@ fun DetailsScreen(
         } else {
             state.character?.let { character ->
                 DetailContent(
-                    character = character
+                    character = character,
+                    films = state.films,
+                    loadingFilms = state.loadingFilms,
+                    errorFilms = state.errorFilms
                 )
             }
         }
@@ -93,6 +98,9 @@ fun DetailHeader(
 @Composable
 fun DetailContent(
     character: StarWarsCharacter,
+    films: Map<String, FilmInfo>,
+    loadingFilms: Set<String>,
+    errorFilms: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -118,7 +126,9 @@ fun DetailContent(
         item {
             FilmsSection(
                 title = "Films",
-                films = character.films
+                films = films,
+                loadingFilms = loadingFilms,
+                errorFilms = errorFilms
             )
         }
     }
@@ -174,7 +184,9 @@ fun InfoItemCard(
 @Composable
 fun FilmsSection(
     title: String,
-    films: List<String>,
+    films: Map<String, FilmInfo>,
+    loadingFilms: Set<String>,
+    errorFilms: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -188,36 +200,80 @@ fun FilmsSection(
             ),
             color = MaterialTheme.colorScheme.onSurface
         )
-        films.forEach { film ->
-            FilmCard(film)
+
+        // Get all film IDs (both loading and loaded)
+        val allFilmIds = (films.keys + loadingFilms).toList().sorted()
+
+        allFilmIds.forEach { filmId ->
+            FilmCard(
+                filmId = filmId,
+                filmInfo = films[filmId],
+                isLoading = filmId in loadingFilms,
+                error = errorFilms[filmId]
+            )
         }
     }
 }
 
 @Composable
 fun FilmCard(
-    title: String,
+    filmId: String,
+    filmInfo: FilmInfo?,
+    isLoading: Boolean,
+    error: String?,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant
+    CommonCard(
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(15.dp)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+                error != null -> {
+                    Text(
+                        text = "Error loading film $filmId: $error",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                filmInfo != null -> {
+                    Text(
+                        text = filmInfo.title,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (filmInfo.openingCrawl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = filmInfo.openingCrawl,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -245,7 +301,14 @@ fun InfoItemCardPreview() {
 fun FilmCardPreview() {
     SnapFoodTheme {
         FilmCard(
-            title = "Episode IV: A New Hope"
+            filmId = "1",
+            filmInfo = FilmInfo(
+                id = "1",
+                title = "A New Hope",
+                openingCrawl = "It is a period of civil war."
+            ),
+            isLoading = false,
+            error = null
         )
     }
 }

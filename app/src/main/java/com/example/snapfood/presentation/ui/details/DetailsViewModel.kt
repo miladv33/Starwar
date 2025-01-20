@@ -3,9 +3,11 @@ package com.example.snapfood.presentation.ui.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.snapfood.domain.model.FilmInfo
 import com.example.snapfood.domain.model.StarWarsCharacter
 import com.example.snapfood.domain.model.Resources
 import com.example.snapfood.domain.usecase.GetCharacterDetailsUseCase
+import com.example.snapfood.domain.usecase.GetFilmInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +21,11 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val getCharacterDetailsUseCase: GetCharacterDetailsUseCase,
+    private val getFilmInfoUseCase: GetFilmInfoUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailScreenState())
     val state = _state.asStateFlow()
-    private var job: Job? = null
 
     init {
         savedStateHandle.get<String>("characterId")?.let { characterId ->
@@ -34,15 +36,72 @@ class DetailsViewModel @Inject constructor(
     fun onEvent(event: DetailScreenEvent) {
         when (event) {
             is DetailScreenEvent.OnGetDetailResult -> {
-                updateGetDetailQuery(event.characterId)
+                getCharacterDetails(event.characterId)
             }
         }
     }
 
-    private fun updateGetDetailQuery(characterId: String) {
-        _state.update { it.copy(characterId = characterId) }
-        job?.cancel()
-        job = viewModelScope.launch { getCharacterDetail(characterId) }
+    private fun getCharacterDetails(characterId: String) {
+        viewModelScope.launch {
+            getCharacterDetailsUseCase(characterId)
+                .onStart { setLoading(true) }
+                .collect { result ->
+                    when (result) {
+                        is Resources.Success -> {
+                            updateUI(result.data)
+                            result.data?.films?.let { loadFilmDetails(it) }
+                        }
+                        is Resources.Loading -> setLoading(result.isLoading)
+                        is Resources.Error -> handleError()
+                    }
+                }
+        }
+    }
+
+    private fun loadFilmDetails(filmIds: List<String>) {
+        // Add films to loading state
+        _state.update { it.copy(loadingFilms = it.loadingFilms + filmIds) }
+
+        // Load each film's details
+        filmIds.forEach { filmId ->
+            viewModelScope.launch {
+                getFilmInfoUseCase(filmId)
+                    .collect { result ->
+                        when (result) {
+                            is Resources.Success -> {
+                                result.data?.let { updateFilmInfo(it) }
+                                removeFilmFromLoading(filmId)
+                            }
+                            is Resources.Error -> {
+                                updateFilmError(filmId, result.message ?: "Unknown error")
+                                removeFilmFromLoading(filmId)
+                            }
+                            is Resources.Loading -> {} // Already handled
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun updateFilmInfo(filmInfo: FilmInfo) {
+        _state.update { currentState ->
+            currentState.copy(
+                films = currentState.films + (filmInfo.id to filmInfo),
+                errorFilms = currentState.errorFilms - filmInfo.id
+            )
+        }
+    }
+
+    private fun updateFilmError(filmId: String, error: String) {
+        _state.update { currentState ->
+            currentState.copy(
+                errorFilms = currentState.errorFilms + (filmId to error)
+            )
+        }
+    }
+
+    private fun removeFilmFromLoading(filmId: String) {
+        _state.update { it.copy(loadingFilms = it.loadingFilms - filmId) }
     }
 
     private fun setLoading(isLoading: Boolean) {
@@ -50,39 +109,10 @@ class DetailsViewModel @Inject constructor(
     }
 
     private fun handleError() {
-        _state.update {
-            it.copy(
-                isLoading = false,
-                character = null
-            )
-        }
-    }
-
-    private fun handleResult(result: Resources<StarWarsCharacter>) {
-        when(result) {
-            is Resources.Success -> updateUI(result.data)
-            is Resources.Loading -> setLoading(result.isLoading)
-            is Resources.Error -> handleError()
-        }
+        _state.update { it.copy(isLoading = false, character = null) }
     }
 
     private fun updateUI(character: StarWarsCharacter?) {
-        _state.update { currentState ->
-            currentState.copy(
-                character = character,
-                isLoading = false
-            )
-        }
-    }
-
-    private suspend fun getCharacterDetail(characterId: String) {
-        getCharacterDetailsUseCase(characterId)
-            .onStart { setLoading(true) }
-            .catch { error ->
-                handleError()
-            }
-            .collect { result ->
-                handleResult(result)
-            }
+        _state.update { it.copy(character = character, isLoading = false) }
     }
 }

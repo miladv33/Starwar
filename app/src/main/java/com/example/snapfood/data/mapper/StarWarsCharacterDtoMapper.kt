@@ -17,7 +17,7 @@ class StarWarsCharacterDtoMapper @Inject constructor() {
             eyeColor = dto.eyeColor,
             gender = dto.gender,
             homeWorld = dto.homeWorld,
-            films = dto.films,
+            films = dto.films.map { it.extractId() },
             species = dto.species,
             vehicles = dto.vehicles,
             starships = dto.starships
