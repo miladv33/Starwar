@@ -2,6 +2,7 @@ package com.example.snapfood.presentation.ui.details
 
 import android.icu.text.IDNA.Info
 import androidx.core.app.NotificationCompat.MessagingStyle.Message
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snapfood.domain.model.CharacterUiModel
@@ -19,12 +20,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-    private val getCharacterDetailsUseCase: GetCharacterDetailsUseCase
+    private val getCharacterDetailsUseCase: GetCharacterDetailsUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailScreenState())
     val state = _state.asStateFlow()
     private var job: Job? = null
-
+    init {
+        savedStateHandle.get<String>("characterId")?.let { characterId ->
+            onEvent(DetailScreenEvent.OnGetDetailResult(characterId))
+        }
+    }
     fun onEvent(event: DetailScreenEvent) {
         when (event) {
             is DetailScreenEvent.OnGetDetailResult -> {
@@ -32,9 +38,7 @@ class DetailsViewModel @Inject constructor(
             }
         }
     }
-    init {
-        updateGetDetailQuery("13")
-    }
+
     private fun updateGetDetailQuery(characterId: String) {
         _state.update { it.copy(characterId = characterId) }
         job?.cancel()
